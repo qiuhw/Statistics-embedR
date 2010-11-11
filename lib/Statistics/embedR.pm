@@ -23,7 +23,15 @@ our $VERSION = '0.01';
     use Statistics::embedR;
 
     my $r = Statistics::embedR->new();
-    $r->eval($cmd);
+    $r->eval($cmd);            # execute $cmd
+
+    $r->R("1")->{real}[0];     # 1
+    $r->R("'1'")->{str}[0];    # '1'
+
+    my $ary = [3,5,7];
+    $r->arry2R($ary, "array"); # array == c(3,5,7)
+
+    $r->sum("c(2,3)")->getvalue->{real}[0]; # 5, almost all R functions are available automatically
 
 =head1 DESCRIPTION
 
