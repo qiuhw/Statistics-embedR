@@ -8,6 +8,7 @@ my $builder = Module::Build->new(
     dist_author         => q{Hongwen Qiu <qiuhongwen@gmail.com>},
     dist_version_from   => 'lib/Statistics/embedR.pm',
     build_requires => {
+        'perl'                       => 5.010,
         'Test::More'                 => 0,
         'Moose'                      => 0,
         'MooseX::Method::Signatures' => 0,

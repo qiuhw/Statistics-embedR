@@ -1,5 +1,6 @@
 package Statistics::embedR;
 
+use 5.010;
 use warnings;
 use strict;
 use Moose;
@@ -25,13 +26,13 @@ our $VERSION = '0.01';
     my $r = Statistics::embedR->new();
     $r->eval($cmd);            # execute $cmd
 
-    $r->R("1")->{real}[0];     # 1
-    $r->R("'1'")->{str}[0];    # '1'
+    $r->R("1");                # 1
+    $r->R("'1'");              # '1'
 
     my $ary = [3,5,7];
     $r->arry2R($ary, "array"); # array == c(3,5,7)
 
-    $r->sum("c(2,3)")->getvalue->{real}[0]; # 5, almost all R functions are available automatically
+    $r->sum("c(2,3)");         # 5, almost all R functions are available automatically
 
 =head1 DESCRIPTION
 
@@ -46,7 +47,7 @@ sub AUTOLOAD {
     my $method = sub {
         my $self = shift;
         $name =~ s/_/./g;
-        $self->eval("$name(@_)");
+        $self->R("$name(@_)");
     };
 
     no strict 'refs';
@@ -77,12 +78,18 @@ method eval(Str $cmd) {
 
 =head2 R(Str $cmd)
 
-Execute R cmd given by the $cmd, and returns result as a HashRef.
+Execute R cmd given by the $cmd, and do some transformation on the results.
 
 =cut
 
 method R(Str $cmd) {
-    $self->eval($cmd)->getvalue;
+    my $result = $self->eval($cmd)->getvalue;
+    my @keys = keys %$result;
+    return $result unless @keys == 1;
+    return $result unless $keys[0] ~~ ['int', 'str', 'real'];
+
+    my @values = @{$result->{$keys[0]}};
+    return @values == 1 ? $values[0] : @values;
 }
 
 =head2 arry2R(ArrayRef $data, Str $RData)
