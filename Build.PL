@@ -8,10 +8,15 @@ my $builder = Module::Build->new(
     dist_author         => q{Hongwen Qiu <qiuhongwen@gmail.com>},
     dist_version_from   => 'lib/Statistics/embedR.pm',
     build_requires => {
-        'Test::More' => 0,
+        'Test::More'                 => 0,
+        'Moose'                      => 0,
+        'MooseX::Method::Signatures' => 0,
+        'Statistics::useR'           => 0.01
     },
-    add_to_cleanup      => [ 'Statistics-embedR-*' ],
+    add_to_cleanup     => [ 'Statistics-embedR-*' ],
     create_makefile_pl => 'traditional',
 );
 
 $builder->create_build_script();
+
+# vim: sw=4 ts=4 ft=perl expandtab

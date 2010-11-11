@@ -2,10 +2,13 @@ package Statistics::embedR;
 
 use warnings;
 use strict;
+use Moose;
+use MooseX::Method::Signatures;
+use Statistics::useR;
 
 =head1 NAME
 
-Statistics::embedR - The great new Statistics::embedR!
+Statistics::embedR - Object-oriented interface for Statistics::useR.
 
 =head1 VERSION
 
@@ -15,37 +18,77 @@ Version 0.01
 
 our $VERSION = '0.01';
 
-
 =head1 SYNOPSIS
-
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
 
     use Statistics::embedR;
 
-    my $foo = Statistics::embedR->new();
-    ...
+    my $r = Statistics::embedR->new();
+    $r->eval($cmd);
 
-=head1 EXPORT
+=head1 DESCRIPTION
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
-
-=head1 SUBROUTINES/METHODS
-
-=head2 function1
+This module provides an object-oriented interface for Statistics::useR.
+And provides some additional useful methods for invoking R.
 
 =cut
 
-sub function1 {
+sub AUTOLOAD {
+    my ($name) = our $AUTOLOAD =~ /::(\w+)$/;
+
+    my $method = sub {
+        my $self = shift;
+        $name =~ s/_/./g;
+        $self->eval("$name(@_)");
+    };
+
+    no strict 'refs';
+    *{ $AUTOLOAD } = $method;
+    goto &$method;
 }
 
-=head2 function2
+sub BUILD {
+    init_R;
+}
+
+method DEMOLISH {
+    $self->quit("save='no'");
+    end_R;
+}
+
+=head1 METHODS
+
+=head2 eval(Str $cmd)
+
+Execute R cmd given by the $cmd.
 
 =cut
 
-sub function2 {
+method eval(Str $cmd) {
+    eval_R($cmd);
+}
+
+=head2 R(Str $cmd)
+
+Execute R cmd given by the $cmd, and returns result as a HashRef.
+
+=cut
+
+method R(Str $cmd) {
+    $self->eval($cmd)->getvalue;
+}
+
+=head2 arry2R(ArrayRef $data, Str $RData)
+
+Convert ArrayRef specified by $data to a R list structure with the name $RData.
+
+=cut
+
+method arry2R(ArrayRef $data, Str $RData) {
+    Statistics::RData->new(
+        data => {val => $data},
+        'varname' => $RData
+    );
+    $self->eval("$RData <- $RData\$val");
 }
 
 =head1 AUTHOR
@@ -55,18 +98,14 @@ Hongwen Qiu, C<< <qiuhongwen at gmail.com> >>
 =head1 BUGS
 
 Please report any bugs or feature requests to C<bug-statistics-embedr at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Statistics-embedR>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
-
-
-
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Statistics-embedR>.
+I will be notified, and then you'll automatically be notified of progress on your bug as I make changes.
 
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
     perldoc Statistics::embedR
-
 
 You can also look for information at:
 
@@ -90,9 +129,7 @@ L<http://search.cpan.org/dist/Statistics-embedR/>
 
 =back
 
-
 =head1 ACKNOWLEDGEMENTS
-
 
 =head1 LICENSE AND COPYRIGHT
 
@@ -104,7 +141,11 @@ by the Free Software Foundation; or the Artistic License.
 
 See http://dev.perl.org/licenses/ for more information.
 
-
 =cut
 
+no Moose;
+__PACKAGE__->meta->make_immutable;
+
 1; # End of Statistics::embedR
+
+# vim: sw=4 ts=4 expandtab ft=perl
