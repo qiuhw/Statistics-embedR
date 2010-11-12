@@ -8,14 +8,21 @@ my $builder = Module::Build->new(
     dist_author         => q{Hongwen Qiu <qiuhongwen@gmail.com>},
     dist_version_from   => 'lib/Statistics/embedR.pm',
     build_requires => {
-        'perl'                       => 5.010,
-        'Test::More'                 => 0,
+        'Test::More' => 0,
+    },
+    requires => {
+        'perl'                       => '5.010',
         'Moose'                      => 0,
         'MooseX::Method::Signatures' => 0,
         'Statistics::useR'           => 0.01
     },
     add_to_cleanup     => [ 'Statistics-embedR-*' ],
     create_makefile_pl => 'traditional',
+    meta_merge => {
+        resources => {
+            repository => 'https://github.com/qiuhw/Statistics-embedR',
+        }
+    },
 );
 
 $builder->create_build_script();
