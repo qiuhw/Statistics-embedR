@@ -1,7 +1,6 @@
 *.swp
 blib*
-Makefile
-Makefile.old
+META.yml
 Build
 Build.bat
 _build*
