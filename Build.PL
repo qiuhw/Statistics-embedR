@@ -17,7 +17,6 @@ my $builder = Module::Build->new(
         'Statistics::useR'           => 0.01
     },
     add_to_cleanup     => [ 'Statistics-embedR-*' ],
-    create_makefile_pl => 'traditional',
     meta_merge => {
         resources => {
             repository => 'https://github.com/qiuhw/Statistics-embedR',
