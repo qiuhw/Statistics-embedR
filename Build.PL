@@ -12,8 +12,6 @@ my $builder = Module::Build->new(
     },
     requires => {
         'perl'                       => '5.010',
-        'Moose'                      => 0,
-        'MooseX::Method::Signatures' => 0,
         'Statistics::useR'           => 0.01
     },
     add_to_cleanup     => [ 'Statistics-embedR-*' ],

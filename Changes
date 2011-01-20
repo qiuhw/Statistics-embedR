@@ -1,5 +1,12 @@
 Revision history for Statistics-embedR
 
-0.01    Thu Nov 11, 2010   16:20
-        Initial release.
+Changes in v0.2
+-------------------------
+- eval() now takes a LIST as its parameter, and execute the list sequentially.
 
+- R() now takes a LIST as its parameter, and will return a ARRAY ref when it formerly
+  will return a list.
+
+Changes in v0.1
+-------------------------
+- This is the initial release.

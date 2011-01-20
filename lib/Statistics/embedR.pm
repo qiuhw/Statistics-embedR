@@ -3,43 +3,26 @@ package Statistics::embedR;
 use 5.010;
 use warnings;
 use strict;
-use Moose;
-use MooseX::Method::Signatures;
 use Statistics::useR;
 
-=head1 NAME
+our $VERSION = "0.1.1";
 
-Statistics::embedR - Object-oriented interface for Statistics::useR.
+state $r = {};
 
-=head1 VERSION
+sub new {
+    return $r if ref $r ne "HASH";
 
-Version 0.01
+    my $that = shift;
+    my $class = ref $that || $that;
+    init_R;
+    bless $r, $class;
+}
 
-=cut
-
-our $VERSION = '0.01';
-
-=head1 SYNOPSIS
-
-    use Statistics::embedR;
-
-    my $r = Statistics::embedR->new();
-    $r->eval($cmd);            # execute $cmd
-
-    $r->R("1");                # 1
-    $r->R("'1'");              # '1'
-
-    my $ary = [3,5,7];
-    $r->arry2R($ary, "array"); # array == c(3,5,7)
-
-    $r->sum("c(2,3)");         # 5, almost all R functions are available automatically
-
-=head1 DESCRIPTION
-
-This module provides an object-oriented interface for Statistics::useR.
-And provides some additional useful methods for invoking R.
-
-=cut
+sub DESTROY {
+    my $self = shift;
+    $self->quit("save='no'");
+    end_R;
+}
 
 sub AUTOLOAD {
     my ($name) = our $AUTOLOAD =~ /::(\w+)$/;
@@ -55,56 +38,95 @@ sub AUTOLOAD {
     goto &$method;
 }
 
-sub BUILD {
-    init_R;
+sub eval {
+    my $self = shift;
+    eval_R(join "\n", @_);
 }
 
-method DEMOLISH {
-    $self->quit("save='no'");
-    end_R;
-}
-
-=head1 METHODS
-
-=head2 eval(Str $cmd)
-
-Execute R cmd given by the $cmd.
-
-=cut
-
-method eval(Str $cmd) {
-    eval_R($cmd);
-}
-
-=head2 R(Str $cmd)
-
-Execute R cmd given by the $cmd, and do some transformation on the results.
-
-=cut
-
-method R(Str $cmd) {
-    my $result = $self->eval($cmd)->getvalue;
+sub R {
+    my $self = shift;
+    my $result = $self->eval(@_)->getvalue;
     my @keys = keys %$result;
     return $result unless @keys == 1;
     return $result unless $keys[0] ~~ ['int', 'str', 'real'];
 
-    my @values = @{$result->{$keys[0]}};
-    return @values == 1 ? $values[0] : @values;
+    my $values = $result->{$keys[0]};
+    return @$values == 1 ? $values->[0] : $values;
 }
 
-=head2 arry2R(ArrayRef $data, Str $RData)
-
-Convert ArrayRef specified by $data to a R list structure with the name $RData.
-
-=cut
-
-method arry2R(ArrayRef $data, Str $RData) {
+sub arry2R {
+    my $self = shift;
+    my ($src, $dest) = @_;
     Statistics::RData->new(
-        data => {val => $data},
-        'varname' => $RData
+        data      => {val => $src},
+        varname   => $dest
     );
-    $self->eval("$RData <- $RData\$val");
+    $self->eval("$dest <- $dest\$val");
 }
+
+1; # End of Statistics::embedR
+
+__END__
+
+=head1 NAME
+
+Statistics::embedR - Object-oriented interface for Statistics::useR.
+
+=head1 VERSION
+
+Version 0.1.1
+
+=head1 SYNOPSIS
+
+    use Statistics::embedR;
+
+    my $r = Statistics::embedR->new();
+    $r->eval($stat);                   # execute one statement
+    $r->eval($stat1, $stat2);          # execute a list of statements sequentially
+
+    $r->R("1");                        # 1
+    $r->R("'1'");                      # '1'
+    $r->R("a <- 1:3", "a");            # [1, 2, 3]
+
+    my $ary = [3,5,7];
+    $r->arry2R($ary, "array");         # array == c(3,5,7)
+
+    $r->sum("c(2,3)");                 # 5, almost all R functions are available automatically
+    $r->as_numeric('c("1", "2")');     # [1, 2], calls as.numeric(c("1", "2")) in the R end
+
+=head1 DESCRIPTION
+
+This module provides an object-oriented interface for Statistics::useR.
+And provides some additional useful methods for invoking R.
+
+Almost all R functions are automatically available for you. If the R functions have dots in the name,
+you can call it with underscore from Perl instead, since Perl don't let you define a method with the
+name containing dots.
+
+=head1 METHODS
+
+=over 4
+
+=item new
+
+This method creates a Statistics::embedR instance. But you can call it as many times as you
+want, since it'll only keep one copy of the instance during the life time of the whole program.
+
+=item eval LIST
+
+This method executes a list of R statements sequentially given by LIST.
+
+=item R LIST
+
+This method executes a list of R statements given by LIST, and return the value of the last statement in a
+somewhat usefull way by some transformation, so that vector with the length 1 returns as a scalar, a vecotr
+with the length other than 1 returns as a ARRAY reference, and other things returns as a HASH reference.
+
+=item arry2R SRC DEST
+
+This method convert a ARRAY ref given by SRC to a R vector, whose name is given by DEST.
+
+=back
 
 =head1 AUTHOR
 
@@ -116,39 +138,9 @@ Please report any bugs or feature requests to C<bug-statistics-embedr at rt.cpan
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Statistics-embedR>.
 I will be notified, and then you'll automatically be notified of progress on your bug as I make changes.
 
-=head1 SUPPORT
+=head1 COPYRIGHT AND LICENSE
 
-You can find documentation for this module with the perldoc command.
-
-    perldoc Statistics::embedR
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Statistics-embedR>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Statistics-embedR>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Statistics-embedR>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Statistics-embedR/>
-
-=back
-
-=head1 ACKNOWLEDGEMENTS
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010 Hongwen Qiu.
+Copyright (c) 2010, 2011 Hongwen Qiu.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
@@ -157,10 +149,5 @@ by the Free Software Foundation; or the Artistic License.
 See http://dev.perl.org/licenses/ for more information.
 
 =cut
-
-no Moose;
-__PACKAGE__->meta->make_immutable;
-
-1; # End of Statistics::embedR
 
 # vim: sw=4 ts=4 expandtab ft=perl
