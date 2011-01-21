@@ -7,6 +7,8 @@ Changes in v0.2
 - R() now takes a LIST as its parameter, and will return a ARRAY ref when it formerly
   will return a list.
 
+- Statistics::embedR->load() is provided for loading a list of R libraries at a time.
+
 Changes in v0.1
 -------------------------
 - This is the initial release.

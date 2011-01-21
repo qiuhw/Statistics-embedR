@@ -43,6 +43,11 @@ sub eval {
     eval_R(join "\n", @_);
 }
 
+sub load {
+    my $self = shift;
+    $self->library($_) for @_;
+}
+
 sub R {
     my $self = shift;
     my $result = $self->eval(@_)->getvalue;
@@ -74,7 +79,7 @@ Statistics::embedR - Object-oriented interface for Statistics::useR.
 
 =head1 VERSION
 
-Version 0.1.1
+Version 0.1.2
 
 =head1 SYNOPSIS
 
@@ -83,6 +88,7 @@ Version 0.1.1
     my $r = Statistics::embedR->new(); # new() must be called at least once, before call the other method
     $r->eval($stat);                   # execute one statement
     $r->eval($stat1, $stat2);          # execute a list of statements sequentially
+    $r->load("GenABEL", "genetics");   # load a list of R library
 
     $r->R("1");                        # 1
     $r->R("'1'");                      # '1'
@@ -117,13 +123,17 @@ to call it at least once before you can call the other methods provided by this 
 
 This method executes a list of R statements sequentially given by LIST.
 
+=item load LIST
+
+This method loads a list of R libraries given by LIST.
+
 =item R LIST
 
 This method executes a list of R statements given by LIST, and return the value of the last statement in a
 somewhat usefull way by some transformation, so that vector with the length 1 returns as a scalar, a vecotr
 with the length other than 1 returns as a ARRAY reference, and other things returns as a HASH reference.
 
-=item arry2R SRC DEST
+=item arry2R SRC, DEST
 
 This method convert a ARRAY ref given by SRC to a R vector, whose name is given by DEST.
 
