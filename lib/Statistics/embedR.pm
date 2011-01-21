@@ -5,7 +5,7 @@ use warnings;
 use strict;
 use Statistics::useR;
 
-our $VERSION = "0.1.1";
+our $VERSION = "0.1.2";
 
 state $r = {};
 
@@ -80,7 +80,7 @@ Version 0.1.1
 
     use Statistics::embedR;
 
-    my $r = Statistics::embedR->new();
+    my $r = Statistics::embedR->new(); # new() must be called at least once, before call the other method
     $r->eval($stat);                   # execute one statement
     $r->eval($stat1, $stat2);          # execute a list of statements sequentially
 
@@ -110,7 +110,8 @@ name containing dots.
 =item new
 
 This method creates a Statistics::embedR instance. But you can call it as many times as you
-want, since it'll only keep one copy of the instance during the life time of the whole program.
+want, since it'll only keep one copy of the instance during the life time of the whole program. And you have
+to call it at least once before you can call the other methods provided by this module.
 
 =item eval LIST
 
