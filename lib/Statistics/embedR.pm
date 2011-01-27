@@ -5,7 +5,7 @@ use warnings;
 use strict;
 use Statistics::useR;
 
-our $VERSION = "0.1.2";
+our $VERSION = "0.10.1";
 
 state $r = {};
 
